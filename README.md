@@ -1,9 +1,13 @@
-# kokerprogramma
-kokerprogramma voor Altrad B.V.
+# kokerprogramma #
+kokerprogramma voor Altrad Services Benelux, Hertel B.V.
 
 Dit is de code voor het kokerprogramma, wat zal worden gebruikt bij het lasersnijden van metalen platen. 
 deze platen worden gevormt in cilinders voor isolatiewerkzaamheden. 
 
-Nino Poppe ©
+
+# Nino André Leo Poppe © #
+
+
+# E-mail - Nino.Poppe@altrad.com #
 
 
