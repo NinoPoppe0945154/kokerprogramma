@@ -9,5 +9,7 @@ deze platen worden gevormt in cilinders voor isolatiewerkzaamheden.
 
 
 # E-mail = Nino.Poppe@altrad.com #
+# E-mail = Ninopoppe@gmail.com #
+# Phone number = +31641395123 #
 
 
