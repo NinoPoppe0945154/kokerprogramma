@@ -88,7 +88,16 @@ class Window(Frame):
         self.frames = {}
 
 root = Tk()
-    #----------------defines----------------------------------------------------------------------------------------------------------------------------------------
+#---------------tab-bladen-------------------------------------------------------------------------------------------------------------------------------------
+tabControl = ttk.Notebook(root)
+
+tab1 = tk.Frame(tabControl, background ='#f2f2f2') 
+tab2 = tk.Frame(tabControl, background ='#f2f2f2')
+  
+tabControl.add(tab1, text ='Invoer 1') 
+tabControl.add(tab2, text ='Invoer 2') 
+tabControl.grid(row= 0, column= 0, sticky='nesw', rowspan=24 , columnspan=10 )
+#----------------defines----------------------------------------------------------------------------------------------------------------------------------------
 def btn_switchclicked():
     global eenheid                                          #maak van eenheid een global zadat deze in deze methode veranderd word en buiten de functie gebruikt kan worden
     global D                                                        
@@ -155,18 +164,22 @@ def btn_berekenclicked():
     global Lg_B
     global VgB
     global VgO
-    nk = int(value1)                      #maak een float van de strings die ingevoerd worden zodat er mee gerekend kan worden
-    B = float(value2)
-    D = float(value3)
-    sx = float(value4)
-    C = float(value5)
-    Ov1 = float(value6)
-    Ov2 = float(value7)
-    RGb = float(value8)
-    RGo = float(value9)
-    n = int(value10)
-    Dg = float(value11)
-    E = float(value12)    
+    try:
+        nk = int(value1)                      #maak een float van de strings die ingevoerd worden zodat er mee gerekend kan worden
+        B = float(value2)
+        D = float(value3)
+        sx = float(value4)
+        C = float(value5)
+        Ov1 = float(value6)
+        Ov2 = float(value7)
+        RGb = float(value8)
+        RGo = float(value9)
+        n = int(value10)
+        Dg = float(value11)
+        E = float(value12)
+    except:
+        messagebox.showinfo('error','er is/zijn 1 of meerdere waarde(s) niet ondersteund')
+    
 
     if B > 1000:
         messagebox.showinfo('error','lengte kan niet groter zijn dan 1000')             #dit zijn een paar checks of de getallen die ingevoerd worden                                                                         
@@ -194,6 +207,7 @@ def btn_berekenclicked():
         D = 0
     else:
         pass
+
     F_Lu = D
     F_Lut = (D + Ov1 + Ov2 )
     F_Nx = math.ceil((F_Lut / sx))
@@ -250,6 +264,26 @@ def define_grid(width, height):
          root.columnconfigure(columns, weight=1)
          columns += 1
     
+    rows = 0                                                  #geeft alle cellen in de grid van tab1 een gewicht van 1 zodat deze zichtbaar zijn 
+    columns = 0 
+    while rows < height:
+         tab1.rowconfigure(rows, weight=1)
+         rows += 1
+
+    while columns < width:
+         tab1.columnconfigure(columns, weight=1)
+         columns += 1
+
+    rows = 0                                                  #geeft alle cellen in de grid van tab2 een gewicht van 1 zodat deze zichtbaar zijn
+    columns = 0 
+    while rows < height:
+         tab2.rowconfigure(rows, weight=1)
+         rows += 1
+
+    while columns < width:
+         tab2.columnconfigure(columns, weight=1)
+         columns += 1
+           
 def btn_GenereerCodeclicked():
     global einde
     global Cnc_code
@@ -289,10 +323,14 @@ def btn_BestandOpslaanclicked():
             messagebox.showinfo('Error!','Geef het bestand een naam!')    
         else:
             filenaam = txt_bestandsnaam.get()+".CNC"    
-            completeName = os.path.join(path, filenaam)         
+            completeName = os.path.join(path, filenaam)
             file1 = open(completeName, "w+")
-            file1.write(Cnc_code)
-            file1.close()
+            try:         
+                file1.write(Cnc_code)
+            except:
+                messagebox.showinfo('Error!','Er ging iets mis ')
+            finally:
+                file1.close()
     except:
         messagebox.showinfo('Error!','Vul eerst de bestands locatie in, rechts boven in uw scherm!')
     else:
@@ -1035,6 +1073,9 @@ def SaveHuidigeWaardes():
     with open('Instellingen.ini', 'w') as configfile:
       config.write(configfile)
 
+def Alleen_Nummers(char):
+    return char.isdigit()
+
 define_grid(grid_breedte,grid_hoogte)
 config = configparser.ConfigParser()
 config.read('Instellingen.ini')                      #lees Instellingen.ino
@@ -1042,74 +1083,76 @@ config.read('Instellingen.ini')                      #lees Instellingen.ino
 photo = PhotoImage(file="icon.png")
 root.iconphoto(False, photo)
 root.geometry('1280x680')
-root['bg'] = '#49A' 
+root['bg'] = '#cccccc' 
 
-txt_nk = ttk.Entry(root,width=10)                 #dit zijn alle invoer boxen met een standard waarde 
+IntValidation = tab1.register(Alleen_Nummers)
+
+txt_nk = ttk.Entry(tab1,width=10, validate="key", validatecommand=(IntValidation, '%S'))               #dit zijn alle invoer boxen met een standard waarde 
 txt_nk.insert(END, config['Entry']['nk'])
 txt_nk.grid(column=10, row=3)
 
-txt_B = ttk.Entry(root,width=10)
+txt_B = ttk.Entry(tab1,width=10)
 txt_B.insert(END, config['Entry']['B'])
 txt_B.grid(column=10, row=4)
 
-txt_D = ttk.Entry(root,width=10)
+txt_D = ttk.Entry(tab1,width=10)
 txt_D.insert(END, config['Entry']['D'])
 txt_D.grid(column=10, row=5)
 
-txt_SX = ttk.Entry(root,width=10)
+txt_SX = ttk.Entry(tab1,width=10)
 txt_SX.insert(END, config['Entry']['sx'])
 txt_SX.grid(column=10, row=6)
 
-txt_C = ttk.Entry(root,width=10)
+txt_C = ttk.Entry(tab1,width=10)
 txt_C.insert(END, config['Entry']['C'])
 txt_C.grid(column=10, row=7)
 
-txt_Ov1 = ttk.Entry(root,width=10)
+txt_Ov1 = ttk.Entry(tab1,width=10)
 txt_Ov1.insert(END, config['Entry']['Ov1'])
 txt_Ov1.grid(column=10, row=8)
 
-txt_Ov2 = ttk.Entry(root,width=10)
+txt_Ov2 = ttk.Entry(tab1,width=10)
 txt_Ov2.insert(END, config['Entry']['Ov2'])
 txt_Ov2.grid(column=10, row=9)
 
-txt_RGb = ttk.Entry(root,width=10)
+txt_RGb = ttk.Entry(tab1,width=10)
 txt_RGb.insert(END, config['Entry']['RGb'])
 txt_RGb.grid(column=10, row=10)
 
-txt_RGo = ttk.Entry(root,width=10)
+txt_RGo = ttk.Entry(tab1,width=10)
 txt_RGo.insert(END, config['Entry']['RGo'])
 txt_RGo.grid(column=10, row=11)
 
-txt_n = ttk.Entry(root,width=10)
+txt_n = ttk.Entry(tab1,width=10, validate="key", validatecommand=(IntValidation, '%S'))
 txt_n.insert(END, config['Entry']['n'])
 txt_n.grid(column=10, row=12)
 
-txt_Dg = ttk.Entry(root,width=10)
+txt_Dg = ttk.Entry(tab1,width=10)
 txt_Dg.insert(END, config['Entry']['Dg'])
 txt_Dg.grid(column=10, row=13)
 
-txt_E = ttk.Entry(root,width=10)
+txt_E = ttk.Entry(tab1,width=10)
 txt_E.insert(END, config['Entry']['E'])
 txt_E.grid(column=10, row=14)
 
 var1 = tk.IntVar(value= config['Checkbutton']['ConischLinks'])
-txt_CL = ttk.Checkbutton(root,text="conisch links?",variable=var1, onvalue=1, offvalue=0)
+txt_CL = ttk.Checkbutton(tab1,text="conisch links?",variable=var1, onvalue=1, offvalue=0)
 txt_CL.grid(column=5, row=7)
 
 var2 = tk.IntVar(value= config['Checkbutton']['BeideConisch'])
-txt_CB = ttk.Checkbutton(root,text="beide conisch?",variable=var2, onvalue=1, offvalue=0)
+txt_CB = ttk.Checkbutton(tab1,text="beide conisch?",variable=var2, onvalue=1, offvalue=0)
 txt_CB.grid(column=6, row=7)
 
 Var3 = tk.IntVar(value= config['Checkbutton']['GatenLinks'])
-txt_GR = ttk.Checkbutton(root,text="gaten rechts?",variable=Var3, onvalue=1, offvalue=0)
+txt_GR = ttk.Checkbutton(tab1,text="gaten rechts?",variable=Var3, onvalue=1, offvalue=0)
 txt_GR.grid(column=6, row=12)
 
 Var4 = tk.IntVar(value= config['Checkbutton']['GatenRechts'])
-txt_GL = ttk.Checkbutton(root,text="gaten links?",variable=Var4, onvalue=1, offvalue=0)
+txt_GL = ttk.Checkbutton(tab1,text="gaten links?",variable=Var4, onvalue=1, offvalue=0) 
 txt_GL.grid(column=5, row=12)
 
 txt_bestandsnaam = ttk.Entry(root,width=30)
-txt_bestandsnaam.insert(END, 'Hertel_CNC')
+txt_bestandsnaam.insert(END, '')
 txt_bestandsnaam.grid(column=16, row=3, sticky='w')
 
 txt_locatie = ttk.Entry(root,width=30)
@@ -1120,85 +1163,85 @@ txt_locatie.bind("<1>", OpenFile)
 
 #------------------knoppen--------------------------------------------------------------------------------------------
 style = ttk.Style()
-style.configure("TButton", foreground="black", background="DeepSkyBlue4", padding=6)
+style.configure("TButton", foreground="black", padding=6)
 
-btn_Bereken = ttk.Button(root, text="bereken", command=btn_berekenclicked, cursor = "hand2", style ="TButton")   #knoppen met welke command ze aanroepen
-btn_Bereken.grid(column=1, row=2)
+btn_Bereken = ttk.Button(tab1, text="bereken", command=btn_berekenclicked, cursor = "hand2", style ="TButton")   #knoppen met welke command ze aanroepen
+btn_Bereken.grid(column=0, row=2)
 
-btn_GenereerCode = ttk.Button(root, text="genereer code",command=btn_GenereerCodeclicked, cursor = "hand2", style ="TButton")
-btn_GenereerCode.grid(column=1, row=4)
+btn_GenereerCode = ttk.Button(tab1, text="genereer code",command=btn_GenereerCodeclicked, cursor = "hand2", style ="TButton")
+btn_GenereerCode.grid(column=0, row=4)
 
-btn_BestandOpslaan = ttk.Button(root, text="bestand opslaan",command=btn_BestandOpslaanclicked, cursor = "hand2", style ="TButton")
-btn_BestandOpslaan.grid(column=1, row=6)
+btn_BestandOpslaan = ttk.Button(tab1, text="bestand opslaan",command=btn_BestandOpslaanclicked, cursor = "hand2", style ="TButton")
+btn_BestandOpslaan.grid(column=0, row=6)
 
-btn_switch = ttk.Button(root, text="switch van eenheid",command=btn_switchclicked, cursor = "hand2", style ="TButton")
-btn_switch.grid(column=1, row=8)
+btn_switch = ttk.Button(tab1, text="switch van eenheid",command=btn_switchclicked, cursor = "hand2", style ="TButton")
+btn_switch.grid(column=0, row=8)
 
 #-----------labels----------------------------------------------------------------------------------------------------
-lbl_in = ttk.Label(root, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
+lbl_in = ttk.Label(tab1, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
 lbl_in.grid(column=4, row=2, sticky = "w")
 
-lbl_nk = ttk.Label(root, text="nk       Aantal platen", anchor='w')
+lbl_nk = ttk.Label(tab1, text="nk       Aantal platen", anchor='w')
 lbl_nk.grid(column=4, row=3, sticky = W)
 
-lbl_B = ttk.Label(root, text="B         Breedte plaat", anchor='w')
+lbl_B = ttk.Label(tab1, text="B         Breedte plaat", anchor='w')
 lbl_B.grid(column=4, row=4, sticky = W)
 
-lbl_D = ttk.Label(root, text="D         Lengte plaat", anchor='w')
+lbl_D = ttk.Label(tab1, text="D         Lengte plaat", anchor='w')
 lbl_D.grid(column=4, row=5, sticky = W)
 
-lbl_SX = ttk.Label(root, text="SX       Slag van de X-as", anchor='w')
+lbl_SX = ttk.Label(tab1, text="SX       Slag van de X-as", anchor='w')
 lbl_SX.grid(column=4, row=6, sticky = W)
 
-lbl_C = ttk.Label(root, text="C        Conisch", anchor='w')
+lbl_C = ttk.Label(tab1, text="C        Conisch", anchor='w')
 lbl_C.grid(column=4, row=7, sticky = W)
 
-lbl_Ov1 = ttk.Label(root, text="Ov1    Overslag 1", anchor='w')
+lbl_Ov1 = ttk.Label(tab1, text="Ov1    Overslag 1", anchor='w')
 lbl_Ov1.grid(column=4, row=8, sticky = W)
 
-lbl_Ov2 = ttk.Label(root, text="Ov2    Overslag 2", anchor='w')
+lbl_Ov2 = ttk.Label(tab1, text="Ov2    Overslag 2", anchor='w')
 lbl_Ov2.grid(column=4, row=9, sticky = W)
 
-lbl_RGb = ttk.Label(root, text="RGb    Afstand rand - 1e gat boven", anchor='w')
+lbl_RGb = ttk.Label(tab1, text="RGb    Afstand rand - 1e gat boven", anchor='w')
 lbl_RGb.grid(column=4, row=10, sticky = W)
 
-lbl_RGo = ttk.Label(root, text="RGo    Afstand rand - 1e gat onder", anchor='w')
+lbl_RGo = ttk.Label(tab1, text="RGo    Afstand rand - 1e gat onder", anchor='w')
 lbl_RGo.grid(column=4, row=11, sticky = W)
 
-lbl_n = ttk.Label(root, text="n         Aantal gaten", anchor='w')
+lbl_n = ttk.Label(tab1, text="n         Aantal gaten", anchor='w')
 lbl_n.grid(column=4, row=12, sticky = W)
 
-lbl_Dg = ttk.Label(root, text="Dg      Diameter gat", anchor='w')
+lbl_Dg = ttk.Label(tab1, text="Dg      Diameter gat", anchor='w')
 lbl_Dg.grid(column=4, row=13, sticky = W)
 
-lbl_E = ttk.Label(root, text="E       Grootte koker", anchor='w')
+lbl_E = ttk.Label(tab1, text="E       Grootte koker", anchor='w')
 lbl_E.grid(column=4, row=14, sticky = W)
 
-lbl_uit = ttk.Label(root, text="berekende waarden", anchor='w', font=("Arial Bold", 18))
+lbl_uit = ttk.Label(tab1, text="berekende waarden", anchor='w', font=("Arial Bold", 18))
 lbl_uit.grid(column=4, row=15, sticky = "w")
 
-lbl_Lu = ttk.Label(root, text="Lu      Uitslag tussen de gaten ", anchor='w')
+lbl_Lu = ttk.Label(tab1, text="Lu      Uitslag tussen de gaten ", anchor='w')
 lbl_Lu.grid(column=4, row=16, sticky = W)
 
-lbl_Lut = ttk.Label(root, text="Lut     Totale uitslag", anchor='w')
+lbl_Lut = ttk.Label(tab1, text="Lut     Totale uitslag", anchor='w')
 lbl_Lut.grid(column=4, row=17, sticky = W)
 
-lbl_Nx = ttk.Label(root, text="Nx      aantal tang overnames", anchor='w')
+lbl_Nx = ttk.Label(tab1, text="Nx      aantal tang overnames", anchor='w')
 lbl_Nx.grid(column=4, row=18, sticky = W)
 
-lbl_Dx = ttk.Label(root, text="Dx      X maat overnames", anchor='w')
+lbl_Dx = ttk.Label(tab1, text="Dx      X maat overnames", anchor='w')
 lbl_Dx.grid(column=4, row=19, sticky = W)
 
-lbl_Lg = ttk.Label(root, text="Lg      Afstand tussen de gaten", anchor='w')
+lbl_Lg = ttk.Label(tab1, text="Lg      Afstand tussen de gaten", anchor='w')
 lbl_Lg.grid(column=4, row=20, sticky = W)
 
-lbl_Vg = ttk.Label(root, text="Vg      Verloop per gat", anchor='w')
+lbl_Vg = ttk.Label(tab1, text="Vg      Verloop per gat", anchor='w')
 lbl_Vg.grid(column=4, row=21, sticky = W)
 
-lbl_nB = ttk.Label(root, text="nB      aantal gaten bover", anchor='w')
+lbl_nB = ttk.Label(tab1, text="nB      aantal gaten bover", anchor='w')
 lbl_nB.grid(column=4, row=22, sticky = W)
 
-lbl_nO = ttk.Label(root, text="nO      aantal gaten onder", anchor='w')
+lbl_nO = ttk.Label(tab1, text="nO      aantal gaten onder", anchor='w')
 lbl_nO.grid(column=4, row=24, sticky = W)
 
 lbl_naam = ttk.Label(root, text="Naam:", anchor='w')
@@ -1214,15 +1257,29 @@ lbl_CNC.grid(column=15, row=5, columnspan= 2, sticky = "w")
 #-----------------foto-----------------------------------------------------------------------------------------------------------------------------------
 image = Image.open("foto.png")          #foto
 photo = ImageTk.PhotoImage(image)
-label = Label(image=photo)
+label = Label(root,image=photo,bg='#cccccc')
 label.image = photo # this line need to prevent gc
 label.grid(column=12, row=3, rowspan=21, sticky=W+E+N+S)
 
 
 #----------------canvas----------------------------------------------------------------------------------------------------------------------------------------
+frame1=Frame(tab1,height=20)
+frame1.grid(row=0, column=0, columnspan=20, rowspan = 2, sticky = "nesw")
+canvas1=Canvas(frame1,bg='#b30000',height=20)
+canvas_text = canvas1.create_text(15, 15, anchor="nw", font=("Courier", 16), fill='white')
+canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Benelux ©")
+canvas1.pack(side=LEFT,expand=True,fill=BOTH)
+
+frame1=Frame(tab2,height=17)
+frame1.grid(row=0, column=0, columnspan=20, sticky = "nesw")
+canvas1=Canvas(frame1,bg='#b30000',height=17)
+canvas_text = canvas1.create_text(15, 15, anchor="nw", font=("Courier", 16), fill='white')
+canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Benelux ©")
+canvas1.pack(side=LEFT,expand=True,fill=BOTH)
+
 frame=Frame(root,width=400, height=600)
 frame.grid(row=5, column=15, rowspan=20, columnspan=5, sticky = "w")
-canvas=Canvas(frame,bg='#FFFFFF',width=400,height=600,scrollregion=(0,0,600,10000))
+canvas=Canvas(frame,bg='#f2f2f2',width=400,height=600,scrollregion=(0,0,600,10000))
 hbar=Scrollbar(frame,orient=HORIZONTAL)
 hbar.pack(side=BOTTOM,fill=X)
 hbar.config(command=canvas.xview)
