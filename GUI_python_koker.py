@@ -12,7 +12,7 @@ import os.path
 import time
 from ttkSimpleDialog import ttkSimpleDialog
 
-grid_breedte = 20             #verander de grid groote 
+grid_breedte = 20             #definier de grid groote 
 grid_hoogte = 26   
 eenheid = "lengte"   
 titel = "(gegenereerde cnc code)"  
@@ -29,7 +29,7 @@ NORM_FONT= ("Verdana", 10)
 KLEIN_FONT= ("Verdana", 8)
 
 # Here, we are creating our class, Window, and inheriting from the Frame
-# class. Frame is a class from the tkinter module. (see Lib/tkinter/__init__)
+# class. Frame is een class van de tkinter module. (see Lib/tkinter/__init__)
 class Window(Frame):
 
     def __init__(self, master=None):
@@ -64,11 +64,11 @@ class Window(Frame):
             max_D = ttkSimpleDialog.askinteger("maxiamale lengte aangeven","vul de maximale lengte in:")
             print(max_D)
 
-        # changing the title of our master widget      
+        #de titel van het programma      
         self.master.title("Hertel-kokerprogramma")
-        # allowing the widget to take the full space of the root window
+        #laat de widget gebruik maken van de hele breedte van de root window
         self.grid()
-        # creating a menu instance
+        # maakt een nieuwe menu instance
         global var
         var = IntVar()
         menu = Menu(self.master)
@@ -140,6 +140,9 @@ def btn_berekenclicked():
     value10 = txt_n.get()
     value11 = txt_Dg.get()
     value12 = txt_E.get()
+    value13 = txt_G.get()
+    value14 = txt_DDH.get()
+
     global nk
     global B
     global D
@@ -152,6 +155,8 @@ def btn_berekenclicked():
     global n
     global Dg
     global E
+    global G
+    global DDH
     global F_Lu
     global F_Lut
     global F_Nx
@@ -164,6 +169,7 @@ def btn_berekenclicked():
     global Lg_B
     global VgB
     global VgO
+    
     try:
         nk = int(value1)                      #maak een float van de strings die ingevoerd worden zodat er mee gerekend kan worden
         B = float(value2)
@@ -177,6 +183,8 @@ def btn_berekenclicked():
         n = int(value10)
         Dg = float(value11)
         E = float(value12)
+        G = int(value13)
+        DDH = float(value14)
     except:
         messagebox.showinfo('error','er is/zijn 1 of meerdere waarde(s) niet ondersteund')
     
@@ -289,26 +297,31 @@ def btn_GenereerCodeclicked():
     global Cnc_code
     global D
     global sx 
+    global drain
+    drain = ""
     Cnc_code = ''
     try:
         GrootteSlagXas()
-        if (hele_D  < sx) and (hele_D > 0):
+        if hele_D  == sx:           #als sx gelijk is aan hele_D dan voer dit uit anders sla het over want dan is het al berekend in MeerdereSnijvlakken() zie GrootteSlagXas()
             Breette_plaat()
             FuncitieDoorsnijden()
-        elif hele_D  == sx:
-            Breette_plaat()
-            FuncitieDoorsnijden()
+            if var5.get() == 1 and E == 0:     #als er een drain hole moet zijn doe dan Drain_hole()
+                Drain_hole()
+            elif var5.get() == 1 and E != 0:
+                messagebox.showinfo('error','er kan geen drain hole gesneden worden met een E > 0!')
+            else:
+                pass
         else:
             pass
         einde ="M16\nG00 X0.0 Y50.0 \nM990 (doorsnijden plaat)\n"
         if res_lengte != 1.1111111111:
-            Aantal_Herhalingen()
-        else:
             Aantal_Her_Msnij()
+        else:
+            Aantal_Herhalingen()
         Cnc_code += "M30  (einde programma)\n"
         canvas.itemconfig(canvas_id, text= Cnc_code)
-        
-        
+
+
         value4 =  txt_SX.get()
         sx = float(value4)
 
@@ -389,7 +402,7 @@ def FuncitieDoorsnijden():
         E += afwijking
         doorsnijden = "G00 X0.0 Y" +str(E) +"\nG91  (relatieve positionering)\nM21  (laser aan)\nG01 X-" +str_sx +" Y0.0\nM20  (laser uit)\nM16\nG90  (absolute positionering)\n"
     else:
-        messagebox.showinfo('error','lengte koker waar de plaat doorgesneden moet worden kan geen - getal zijn en niet groter dan 999')
+        messagebox.showinfo('error','lengte koker waar de plaat doorgesneden moet worden kan geen - getal zijn en niet groter dan 999') 
 
 def snijgaten():
     global gaatjes
@@ -928,7 +941,7 @@ def laatstesnijgaten():
     else:
         pass 
 
-def Aantal_Herhalingen():
+def Aantal_Her_Msnij():
     global Cnc_code
     global nk
     global gaatjes
@@ -953,10 +966,11 @@ def Aantal_Herhalingen():
     else:
         messagebox.showinfo('error','aantal platen/kokers moet groter zijn dan 0') 
 
-def Aantal_Her_Msnij():
+def Aantal_Herhalingen():
     global Cnc_code
     global nk
     global gaatjes_binnen_sx
+    global drain
     code = ""
     start ="G90(absolute positionering)\nG17\nM16\nM11  (Tang los)\nG00 X-"+str_sx+"Y 0.0\nM10  (Tang vast)\n"
     k = 1 
@@ -966,7 +980,7 @@ def Aantal_Her_Msnij():
         snijgaten()                                 
         while nk >= 1:
             aanhang ="(koker"+str_k +")\n"
-            code = aanhang +start +gaatjes_binnen_sx +grootte +doorsnijden +einde
+            code = aanhang +start +gaatjes_binnen_sx +drain +grootte +doorsnijden +einde
             Cnc_code += code
             nk -= 1
             int_k = int(str_k)
@@ -975,7 +989,7 @@ def Aantal_Her_Msnij():
     elif nk == 1:
             snijgaten()
             aanhang ="(koker1)\n"   
-            code = aanhang +start +gaatjes_binnen_sx +grootte +doorsnijden +einde
+            code = aanhang +start +gaatjes_binnen_sx +drain +grootte +doorsnijden +einde
             Cnc_code += code
     else:
         messagebox.showinfo('error','aantal platen/kokers moet groter zijn dan 0') 
@@ -988,12 +1002,22 @@ def MeerdereSnijvlakken():
     global str_sx
     global laatstegaatjes
     global gaatjes
+    global drain
+    global EPositie
+    EPositie = 0                  #Eind positie
+    temp_D = D / 360 * G + Ov2
+    Gekozen_D = round(temp_D, 3)
+    TEPositie = Gekozen_D         #Temp Eind positie
+    HPositie = 0                  #huidige positie
+    VPositie = sx                 #volgende positie
+
     res_lengte = hele_D
     midden = ""
     temp =""
     laatste = ""
     gaatjes = ""
     laatstegaatjes =""
+    drain = ""
     str_sx = str(sx)
     while res_lengte > sx:
         Breette_plaat()
@@ -1017,13 +1041,42 @@ def MeerdereSnijvlakken():
                 temp = tangoverpak +"(segment)\n"+gaatjes +grootte +doorsnijden
                 midden += temp
                 res_lengte -= sx
-                print(res_lengte)
+            
+            if (var5.get() == 1) and (Gekozen_D > HPositie) and (Gekozen_D < VPositie) and E == 0:
+                EPositie = round(TEPositie, 3)
+                Drain_hole()
+                midden += drain
+            elif (var5.get() == 1) and (Gekozen_D > HPositie) and (Gekozen_D < VPositie) and E != 0:
+                messagebox.showinfo('error','er kan geen drain hole gesneden worden met een E > 0!')
+            elif ((var5.get() == 1) and (Gekozen_D == HPositie)) or ((Gekozen_D == VPositie) and (var5.get() == 1)):
+                messagebox.showinfo('Error!','het drain hole val precies op een tangoverpak, verander sx naar (oude sx +- diameter drain hole + 5)!')
+            else:
+                TEPositie -= sx
+
+            HPositie += sx
+            VPositie += sx
+
         else:
             tangoverpak ="(TangOverpak)\n(overname1)\nG00 X0.0 Y0.0\nM11  (Tang los) \nG00 X-" +str_sx +" Y0.0\nM10 (Tang vast)\nM16\n"
             temp = tangoverpak +"(segment)\n" +grootte +doorsnijden 
             midden += temp
             res_lengte -= sx
-            print(res_lengte)
+            
+            if (var5.get() == 1) and (Gekozen_D > HPositie) and (Gekozen_D < VPositie) and E == 0:
+                EPositie = round(TEPositie, 3)
+                Drain_hole()
+                midden += drain
+            elif (var5.get() == 1) and (Gekozen_D > HPositie) and (Gekozen_D < VPositie) and E != 0:
+                messagebox.showinfo('error','er kan geen drain hole gesneden worden met een E > 0!')
+            elif ((var5.get() == 1) and (Gekozen_D == HPositie)) or ((Gekozen_D == VPositie) and (var5.get() == 1)):
+                messagebox.showinfo('Error!','het drain hole val precies op een tangoverpak, verander sx naar (oude sx +- diameter drain hole + 5)!')
+            else:
+                TEPositie -= sx
+        
+            HPositie += sx
+            VPositie += sx
+
+
     if res_lengte <= sx and res_lengte > 0:
         if res_lengte <= 50:
             messagebox.showinfo('error','de laatste tangoverpak is kleiner dan 50\ndoordat (D - ((Nx -1) * SX)) < 50 \nverander de slag van de x as totdat deze melding niet meer terug komt')
@@ -1044,6 +1097,27 @@ def MeerdereSnijvlakken():
     else:
         pass
 
+def Drain_hole():
+    global drain
+    RDH = DDH / 2
+    str_RDH = str(RDH)
+    drain = ""
+    Halve_B = (B - RGo - RGb) / 2 + afwijking + RGo
+    str_Halve_B = str(Halve_B)
+
+    if res_lengte != 1.1111111111:
+        print (EPositie)
+        Xdrain = sx - EPositie
+        str_XdrainPlusRDh = str(Xdrain + RDH)
+        str_Xdrain = str(Xdrain)
+        drain = "(Drain hole)\nG00 X- "+str_Xdrain +" Y "+str_Halve_B +"\nM21  (Laser aan)\nG01 X-"+str_XdrainPlusRDh +" Y "+str_Halve_B +"\nG03 X-"+str_XdrainPlusRDh +" Y "+str_Halve_B +" I "+str_RDH+" J 0.0\nM20  (Laser uit)\nM16\n"
+    else:
+        temp = D / 360 * G + Ov2
+        Xdrain = round(temp, 3)
+        str_Xdrain = str(Xdrain)
+        str_XdrainPRDH = str(Xdrain + RDH)
+        drain = "(Drain hole)\nG00 X- "+str_Xdrain +" Y "+str_Halve_B +"\nM21  (Laser aan)\nG01 X-"+str_XdrainPRDH +" Y "+str_Halve_B +"\nG03 X-"+str_XdrainPRDH +" Y "+str_Halve_B +" I "+str_RDH+" J 0.0\nM20  (Laser uit)\nM16\n"
+
 def SaveHuidigeWaardes():
     config = configparser.ConfigParser()
     config['Entry'] = {  'nk': nk,
@@ -1057,12 +1131,15 @@ def SaveHuidigeWaardes():
                          'RGo': RGb,
                          'n': n,
                          'Dg': Dg,
-                         'E': E}
+                         'E': E,
+                         'G': G,
+                         'DDH': DDH}
     
     config['Checkbutton'] = {  'ConischLinks': var1.get(),
                          'BeideConisch': var2.get(),
                          'GatenLinks': Var3.get(),
-                         'GatenRechts': Var4.get()}
+                         'GatenRechts': Var4.get(),
+                         'Drain_Hole': var5.get()}
 
 
     config['Instellingen'] = { 'afwijking': afwijking,
@@ -1080,14 +1157,15 @@ define_grid(grid_breedte,grid_hoogte)
 config = configparser.ConfigParser()
 config.read('Instellingen.ini')                      #lees Instellingen.ino
 
-photo = PhotoImage(file="icon.png")
+photo = PhotoImage(file="icon.png")                  #root window instellingen zoals iconfoto grootte van het programma  wanneer opgestart en de achtergronfd kleur   
 root.iconphoto(False, photo)
 root.geometry('1280x680')
 root['bg'] = '#cccccc' 
 
-IntValidation = tab1.register(Alleen_Nummers)
+IntValidation = tab1.register(Alleen_Nummers)        #zorgt evoor dat er alleen nummer in de entry box ingevoerd kan worden 
 
-txt_nk = ttk.Entry(tab1,width=10, validate="key", validatecommand=(IntValidation, '%S'))               #dit zijn alle invoer boxen met een standard waarde 
+#-----------entry box tab1---------------------------------------------------------------------------------------------------------------------------
+txt_nk = ttk.Entry(tab1,width=10, validate="key", validatecommand=(IntValidation, '%S'))               #dit zijn alle invoer boxen met een standard waarde die uit instellingen.ini gehaald wordt 
 txt_nk.insert(END, config['Entry']['nk'])
 txt_nk.grid(column=10, row=3)
 
@@ -1134,7 +1212,25 @@ txt_Dg.grid(column=10, row=13)
 txt_E = ttk.Entry(tab1,width=10)
 txt_E.insert(END, config['Entry']['E'])
 txt_E.grid(column=10, row=14)
+#--------entry box root-----------------------------------------------------------------------------------------------------------------
+txt_bestandsnaam = ttk.Entry(root,width=30)
+txt_bestandsnaam.insert(END, '')
+txt_bestandsnaam.grid(column=16, row=3, sticky='w')
 
+txt_locatie = ttk.Entry(root,width=30)
+txt_locatie.insert(END, config['Opslaan']['locatie'])
+
+txt_locatie.grid(column=16, row=4, sticky='w')
+txt_locatie.bind("<1>", OpenFile)
+#--------entry box tab2-------------------------------------------------------------------------------------------------------------------------
+txt_G = ttk.Entry(tab2,width=10, validate="key", validatecommand=(IntValidation, '%S'))    
+txt_G.insert(END, config['Entry']['G'])
+txt_G.grid(column=10, row=2)
+
+txt_DDH = ttk.Entry(tab2,width=10)               
+txt_DDH.insert(END, config['Entry']['DDH'])
+txt_DDH.grid(column=10, row=3)
+#--------checkbox tab1--------------------------------------------------------------------------------------------------------------------------
 var1 = tk.IntVar(value= config['Checkbutton']['ConischLinks'])
 txt_CL = ttk.Checkbutton(tab1,text="conisch links?",variable=var1, onvalue=1, offvalue=0)
 txt_CL.grid(column=5, row=7)
@@ -1150,17 +1246,10 @@ txt_GR.grid(column=6, row=12)
 Var4 = tk.IntVar(value= config['Checkbutton']['GatenRechts'])
 txt_GL = ttk.Checkbutton(tab1,text="gaten links?",variable=Var4, onvalue=1, offvalue=0) 
 txt_GL.grid(column=5, row=12)
-
-txt_bestandsnaam = ttk.Entry(root,width=30)
-txt_bestandsnaam.insert(END, '')
-txt_bestandsnaam.grid(column=16, row=3, sticky='w')
-
-txt_locatie = ttk.Entry(root,width=30)
-txt_locatie.insert(END, config['Opslaan']['locatie'])
-
-txt_locatie.grid(column=16, row=4, sticky='w')
-txt_locatie.bind("<1>", OpenFile)
-
+#--------checkbox tab2--------------------------------------------------------------------------------------------------------------------------
+var5 = tk.IntVar(value= config['Checkbutton']['Drain_Hole'])
+txt_DH = ttk.Checkbutton(tab2,text="Drain hole?",variable=var5, onvalue=1, offvalue=0)
+txt_DH.grid(column=7, row=2)
 #------------------knoppen--------------------------------------------------------------------------------------------
 style = ttk.Style()
 style.configure("TButton", foreground="black", padding=6)
@@ -1177,7 +1266,7 @@ btn_BestandOpslaan.grid(column=0, row=6)
 btn_switch = ttk.Button(tab1, text="switch van eenheid",command=btn_switchclicked, cursor = "hand2", style ="TButton")
 btn_switch.grid(column=0, row=8)
 
-#-----------labels----------------------------------------------------------------------------------------------------
+#-----------labels tab1----------------------------------------------------------------------------------------------------
 lbl_in = ttk.Label(tab1, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
 lbl_in.grid(column=4, row=2, sticky = "w")
 
@@ -1217,7 +1306,7 @@ lbl_Dg.grid(column=4, row=13, sticky = W)
 lbl_E = ttk.Label(tab1, text="E       Grootte koker", anchor='w')
 lbl_E.grid(column=4, row=14, sticky = W)
 
-lbl_uit = ttk.Label(tab1, text="berekende waarden", anchor='w', font=("Arial Bold", 18))
+lbl_uit = ttk.Label(tab1, text="Berekende waarden", anchor='w', font=("Arial Bold", 18))
 lbl_uit.grid(column=4, row=15, sticky = "w")
 
 lbl_Lu = ttk.Label(tab1, text="Lu      Uitslag tussen de gaten ", anchor='w')
@@ -1226,41 +1315,47 @@ lbl_Lu.grid(column=4, row=16, sticky = W)
 lbl_Lut = ttk.Label(tab1, text="Lut     Totale uitslag", anchor='w')
 lbl_Lut.grid(column=4, row=17, sticky = W)
 
-lbl_Nx = ttk.Label(tab1, text="Nx      aantal tang overnames", anchor='w')
+lbl_Nx = ttk.Label(tab1, text="Nx      Aantal tang overnames", anchor='w')
 lbl_Nx.grid(column=4, row=18, sticky = W)
 
 lbl_Dx = ttk.Label(tab1, text="Dx      X maat overnames", anchor='w')
 lbl_Dx.grid(column=4, row=19, sticky = W)
 
 lbl_Lg = ttk.Label(tab1, text="Lg      Afstand tussen de gaten", anchor='w')
-lbl_Lg.grid(column=4, row=20, sticky = W)
+lbl_Lg.grid(column=4, row=20, sticky = W, columnspan = 4)
 
 lbl_Vg = ttk.Label(tab1, text="Vg      Verloop per gat", anchor='w')
-lbl_Vg.grid(column=4, row=21, sticky = W)
+lbl_Vg.grid(column=4, row=21, sticky = W, columnspan = 4)
 
-lbl_nB = ttk.Label(tab1, text="nB      aantal gaten bover", anchor='w')
+lbl_nB = ttk.Label(tab1, text="nB      Aantal gaten bover", anchor='w')
 lbl_nB.grid(column=4, row=22, sticky = W)
 
-lbl_nO = ttk.Label(tab1, text="nO      aantal gaten onder", anchor='w')
-lbl_nO.grid(column=4, row=24, sticky = W)
-
-lbl_naam = ttk.Label(root, text="Naam:", anchor='w')
+lbl_nO = ttk.Label(tab1, text="nO      Aantal gaten onder", anchor='w')
+lbl_nO.grid(column=4, row=23, sticky = W)
+#-----------labels root-------------------------------------------------------------------------------------
+lbl_naam = tk.Label(root, text="Naam:", anchor='w', bg = '#cccccc')
 lbl_naam.grid(column=15, row=3, sticky = W,)
 
-lbl_locatie = ttk.Label(root, text="locatie:", anchor='w')
+lbl_locatie = tk.Label(root, text="Locatie:", anchor='w', bg = '#cccccc')
 lbl_locatie.grid(column=15, row=4, sticky = W,)
 
-lbl_CNC = ttk.Label(root, text="gegenereerde code", anchor='w', font=("Arial Bold", 18))
+lbl_CNC = tk.Label(root, text="Gegenereerde code", anchor='w', font=("Arial Bold", 18), bg = '#cccccc')
 lbl_CNC.grid(column=15, row=5, columnspan= 2, sticky = "w")
+#---------labels tab2---------------------------------------------------------------------------------------
+lbl_in2 = ttk.Label(tab2, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
+lbl_in2.grid(column=4, row=1, sticky = "w")
 
+lbl_G = ttk.Label(tab2, text="G       Positie drain hole in Graden ∠", anchor='w')
+lbl_G.grid(column=4, row=2, sticky = W)
 
+lbl_DDH = ttk.Label(tab2, text="DDH       Diameter drain hole ", anchor='w')
+lbl_DDH.grid(column=4, row=3, sticky = W)
 #-----------------foto-----------------------------------------------------------------------------------------------------------------------------------
 image = Image.open("foto.png")          #foto
 photo = ImageTk.PhotoImage(image)
 label = Label(root,image=photo,bg='#cccccc')
 label.image = photo # this line need to prevent gc
 label.grid(column=12, row=3, rowspan=21, sticky=W+E+N+S)
-
 
 #----------------canvas----------------------------------------------------------------------------------------------------------------------------------------
 frame1=Frame(tab1,height=20)
@@ -1270,9 +1365,9 @@ canvas_text = canvas1.create_text(15, 15, anchor="nw", font=("Courier", 16), fil
 canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Benelux ©")
 canvas1.pack(side=LEFT,expand=True,fill=BOTH)
 
-frame1=Frame(tab2,height=17)
-frame1.grid(row=0, column=0, columnspan=20, sticky = "nesw")
-canvas1=Canvas(frame1,bg='#b30000',height=17)
+frame1=Frame(tab2,height=18)
+frame1.grid(row=0, column=0, columnspan=20, rowspan = 1, sticky = "nesw")
+canvas1=Canvas(frame1,bg='#b30000',height=18)
 canvas_text = canvas1.create_text(15, 15, anchor="nw", font=("Courier", 16), fill='white')
 canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Benelux ©")
 canvas1.pack(side=LEFT,expand=True,fill=BOTH)
