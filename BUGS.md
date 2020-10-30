@@ -7,7 +7,7 @@ in deze tabel is weergegeven welke versies er getest zijn.
 | < 4.0   | :x:                |
 |   5.0   | :white_check_mark: |
 |   6.0   | :white_check_mark: |
-|   7.0   |  :x:               |
+|   7.0 > | :white_check_mark: |
 
 ## Een bug gevonden?
 
