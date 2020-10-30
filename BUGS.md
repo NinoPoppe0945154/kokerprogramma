@@ -14,3 +14,4 @@ in deze tabel is weergegeven welke versies er getest zijn.
 Als u toch een bug heeft gevonden mail dan naar:
 
 # E-mail = Nino.Poppe@altrad.com 
+# E-mail = Ninopoppe@gmail.com
