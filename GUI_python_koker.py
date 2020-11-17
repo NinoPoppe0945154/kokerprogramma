@@ -23,6 +23,8 @@ global res_lengte
 res_lengte = 1.1111111111
 global afwijking
 afwijking = 5
+global canvas_lengte
+canvas_lengte = 3500
 
 GROOT_FONT= ("Verdana", 12)
 NORM_FONT= ("Verdana", 10)
@@ -169,6 +171,7 @@ def btn_berekenclicked():
     global Lg_B
     global VgB
     global VgO
+    global canvas_lengte
     
     try:
         nk = int(value1)                      #maak een float van de strings die ingevoerd worden zodat er mee gerekend kan worden
@@ -190,7 +193,7 @@ def btn_berekenclicked():
     
 
     if B > 1000:
-        messagebox.showinfo('error','lengte kan niet groter zijn dan 1000')             #dit zijn een paar checks of de getallen die ingevoerd worden                                                                         
+        messagebox.showinfo('error','breedte kan niet groter zijn dan 1000')             #dit zijn een paar checks of de getallen die ingevoerd worden                                                                         
     else:                                                                               #wel gebruikt kunnen worden en geeft de gebruiker een bericht terug wat er fout ging
       pass
     
@@ -215,6 +218,13 @@ def btn_berekenclicked():
         D = 0
     else:
         pass
+
+    if nk > 1:
+        canvas_lengte = 3500 * nk
+        canvas.configure(scrollregion=(0,0,600,canvas_lengte))
+    else:
+        pass
+
 
     F_Lu = D
     F_Lut = (D + Ov1 + Ov2 )
@@ -813,8 +823,8 @@ def laatstesnijgaten():
     str_straal = str(straal)
     first_xcord = (Ov2)
     first_ycord = RGo
-    first_xcord_straal = first_xcord + (Dg / 2)
-    first_xcord_straal = new_xcord + (Dg / 2)
+    first_xcord_straal = round(first_xcord + (Dg / 2),3)
+    first_xcord_straal = round(new_xcord + (Dg / 2),3)
     str_first_xcord_straal = str(first_xcord_straal)
     str_first_xcord = str(first_xcord)
     str_first_ycord = str(first_ycord)
@@ -829,7 +839,7 @@ def laatstesnijgaten():
             str_gat_num = str(gat_num)
             new_ycord = round(new_ycord, 3)
             new_xcord = round(new_xcord, 3)
-            xcord_straal = new_xcord + (Dg / 2)
+            xcord_straal = round(new_xcord + (Dg / 2),3)
             str_xcord_straal = str(xcord_straal)
             str_new_xcord = str(new_xcord)
             str_new_ycord = str(new_ycord)
@@ -1049,7 +1059,7 @@ def MeerdereSnijvlakken():
             elif (var5.get() == 1) and (Gekozen_D > HPositie) and (Gekozen_D < VPositie) and E != 0:
                 messagebox.showinfo('error','er kan geen drain hole gesneden worden met een E > 0!')
             elif ((var5.get() == 1) and (Gekozen_D == HPositie)) or ((Gekozen_D == VPositie) and (var5.get() == 1)):
-                messagebox.showinfo('Error!','het drain hole val precies op een tangoverpak, verander sx naar (oude sx +- diameter drain hole + 5)!')
+                messagebox.showinfo('Error!','het drain hole valt precies op een tangoverpak, verander sx naar (oude sx +- diameter drain hole + 5)!')
             else:
                 TEPositie -= sx
 
@@ -1119,39 +1129,43 @@ def Drain_hole():
         drain = "(Drain hole)\nG00 X- "+str_Xdrain +" Y "+str_Halve_B +"\nM21  (Laser aan)\nG01 X-"+str_XdrainPRDH +" Y "+str_Halve_B +"\nG03 X-"+str_XdrainPRDH +" Y "+str_Halve_B +" I "+str_RDH+" J 0.0\nM20  (Laser uit)\nM16\n"
 
 def SaveHuidigeWaardes():
-    config = configparser.ConfigParser()
-    config['Entry'] = {  'nk': nk,
-                         'B': B,
-                         'D': D,
-                         'SX': sx,
-                         'C': C,
-                         'Ov1': Ov1,
-                         'Ov2': Ov2,
-                         'RGb': RGo,
-                         'RGo': RGb,
-                         'n': n,
-                         'Dg': Dg,
-                         'E': E,
-                         'G': G,
-                         'DDH': DDH}
+    try:
+        config = configparser.ConfigParser()
+        config['Entry'] = {  'nk': nk,
+                             'B': B,
+                             'D': D,
+                             'SX': sx,
+                             'C': C,
+                             'Ov1': Ov1,
+                             'Ov2': Ov2,
+                             'RGb': RGo,
+                             'RGo': RGb,
+                             'n': n,
+                             'Dg': Dg,
+                             'E': E,
+                             'G': G,
+                             'DDH': DDH}
+
+        config['Checkbutton'] = {  'ConischLinks': var1.get(),
+                             'BeideConisch': var2.get(),
+                             'GatenLinks': Var3.get(),
+                             'GatenRechts': Var4.get(),
+                             'Drain_Hole': 0 }
+
+
+        config['Instellingen'] = { 'afwijking': afwijking,
+                                'max_lengte': max_D}
+
+        config['Opslaan'] = {'Locatie': path}
+
+        with open('Instellingen.ini', 'w') as configfile:
+          config.write(configfile)
+    except:
+        print("niet alle waardes zijn beschikbaar")
     
-    config['Checkbutton'] = {  'ConischLinks': var1.get(),
-                         'BeideConisch': var2.get(),
-                         'GatenLinks': Var3.get(),
-                         'GatenRechts': Var4.get(),
-                         'Drain_Hole': var5.get()}
-
-
-    config['Instellingen'] = { 'afwijking': afwijking,
-                            'max_lengte': max_D}
-
-    config['Opslaan'] = {'Locatie': path}
-
-    with open('Instellingen.ini', 'w') as configfile:
-      config.write(configfile)
-
 def Alleen_Nummers(char):
     return char.isdigit()
+
 
 define_grid(grid_breedte,grid_hoogte)
 config = configparser.ConfigParser()
@@ -1373,8 +1387,8 @@ canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Ben
 canvas1.pack(side=LEFT,expand=True,fill=BOTH)
 
 frame=Frame(root,width=400, height=600)
-frame.grid(row=5, column=15, rowspan=20, columnspan=5, sticky = "w")
-canvas=Canvas(frame,bg='#f2f2f2',width=400,height=600,scrollregion=(0,0,600,10000))
+frame.grid(row=6, column=15, rowspan=20, columnspan=5, sticky = "w")
+canvas=Canvas(frame,bg='#f2f2f2',width=400,height=600,scrollregion=(0,0,600,canvas_lengte))
 hbar=Scrollbar(frame,orient=HORIZONTAL)
 hbar.pack(side=BOTTOM,fill=X)
 hbar.config(command=canvas.xview)
