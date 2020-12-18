@@ -12,19 +12,26 @@ import os.path
 import time
 from ttkSimpleDialog import ttkSimpleDialog
 
+
+config = configparser.ConfigParser()
+config.read('Instellingen.ini')
 grid_breedte = 20             #definier de grid groote 
 grid_hoogte = 26   
 eenheid = "lengte"   
 titel = "(gegenereerde cnc code)"  
 Cnc_code =""
-global max_D
-max_D = 6000
 global res_lengte
-res_lengte = 1.1111111111
+global max_D
 global afwijking
-afwijking = 5
 global canvas_lengte
+global foto_zichtbaarheid
+global F_zichtbaarheid
+res_lengte = 1.1111111111
+max_D = float(config['Instellingen']['max_lengte'])
+afwijking = float(config['Instellingen']['afwijking'])
 canvas_lengte = 3500
+foto_zichtbaarheid = int(config['Instellingen']['foto_zichtbaarheid'])
+boolCNC_zichtbaarheid = int(config['Instellingen']['boolCNC_zichtbaarheid'])
 
 GROOT_FONT= ("Verdana", 12)
 NORM_FONT= ("Verdana", 10)
@@ -36,13 +43,11 @@ class Window(Frame):
 
     def __init__(self, master=None):
         
-        # parameters that you want to send through the Frame class. 
         Frame.__init__(self, master)   
 
-        #reference to the master widget, which is the tk window                 
+        # refereer naar de master widget en dat is de tk window              
         self.master = master
 
-        #with that, we want to then run init_window, which doesn't yet exist
         self.init_window()
 
     #Creation of init_window
@@ -65,7 +70,32 @@ class Window(Frame):
             global max_D
             max_D = ttkSimpleDialog.askinteger("maxiamale lengte aangeven","vul de maximale lengte in:")
             print(max_D)
+        def F_zichtbaarheid():
+            global foto_zichtbaarheid
+            if foto_zichtbaarheid == 1:
+                label.grid_remove()
+                foto_zichtbaarheid = 0
 
+            elif foto_zichtbaarheid == 0:
+                label.grid(column=12, row=3, rowspan=21, sticky='wens')
+                foto_zichtbaarheid = 1
+            else :
+                pass
+
+        def CNC_zichtbaarheid():
+            global boolCNC_zichtbaarheid
+            if boolCNC_zichtbaarheid == 1:
+                lbl_CNC.grid_remove()
+                frame.grid_remove()
+                boolCNC_zichtbaarheid = 0
+                
+            elif boolCNC_zichtbaarheid == 0:
+                lbl_CNC.grid(column=15, row=5, columnspan= 2, sticky = "w")
+                frame.grid(row=6, column=15, rowspan=20, columnspan=5, sticky = "w")
+                canvas.pack(side=LEFT,expand=True,fill=BOTH)
+                boolCNC_zichtbaarheid = 1
+            else :
+                pass
         #de titel van het programma      
         self.master.title("Hertel-kokerprogramma")
         #laat de widget gebruik maken van de hele breedte van de root window
@@ -86,7 +116,10 @@ class Window(Frame):
         filemenu.add_separator()
         filemenu.add_command(label="andere instellingen")
         filemenu.add_command(label="Maximale lengte",command = max_lengte)
-
+        filemenu.add_separator()
+        filemenu.add_command(label="scherm indeling")
+        filemenu.add_command(label="verberg / weergeven foto",command = F_zichtbaarheid)
+        filemenu.add_command(label="verberg / weergeven CNC code",command = CNC_zichtbaarheid)
         self.frames = {}
 
 root = Tk()
@@ -98,7 +131,7 @@ tab2 = tk.Frame(tabControl, background ='#f2f2f2')
   
 tabControl.add(tab1, text ='Invoer 1') 
 tabControl.add(tab2, text ='Invoer 2') 
-tabControl.grid(row= 0, column= 0, sticky='nesw', rowspan=24 , columnspan=10 )
+tabControl.grid(row= 0, column= 0, sticky='nesw', rowspan=26 , columnspan=10 )
 #----------------defines----------------------------------------------------------------------------------------------------------------------------------------
 def btn_switchclicked():
     global eenheid                                          #maak van eenheid een global zadat deze in deze methode veranderd word en buiten de functie gebruikt kan worden
@@ -460,9 +493,9 @@ def snijgaten():
     straal = Dg / 2
     str_straal = str(straal)
     #-------------------------------------------variabelen eerste gat----------------------------------------------------------------------------------------------------------    
-    first_xcord = (temp_sx - Ov1)
-    first_ycord = RGo
-    first_xcord_straal = first_xcord + (Dg / 2)
+    first_xcord = round((temp_sx - Ov1),3)
+    first_ycord = round(RGo, 3)
+    first_xcord_straal = round(first_xcord + (Dg / 2), 3)
     str_first_xcord_straal = str(first_xcord_straal)
     str_first_xcord = str(first_xcord)
     str_first_ycord = str(first_ycord)
@@ -485,7 +518,7 @@ def snijgaten():
                     str_gat_num = str(gat_num)
                     new_ycord = round(new_ycord, 3)
                     new_xcord = round(new_xcord, 3)
-                    xcord_straal = new_xcord + (Dg / 2)
+                    xcord_straal = round(new_xcord + (Dg / 2),3)
                     str_xcord_straal = str(xcord_straal)
                     str_new_xcord = str(new_xcord)
                     str_new_ycord = str(new_ycord)
@@ -536,7 +569,7 @@ def snijgaten():
                     str_gat_num = str(gat_num)
                     new_ycord = round(new_ycord, 3)
                     new_xcord = round(new_xcord, 3)
-                    xcord_straal = new_xcord + (Dg / 2)
+                    xcord_straal = round(new_xcord + (Dg / 2),3)
                     str_xcord_straal = str(xcord_straal)
                     str_new_xcord = str(new_xcord)
                     str_new_ycord = str(new_ycord)
@@ -560,7 +593,7 @@ def snijgaten():
                 str_gat_num = str(gat_num)
                 new_ycord = round(new_ycord, 3)
                 new_xcord = round(new_xcord, 3)
-                xcord_straal = new_xcord + (Dg / 2)
+                xcord_straal = round(new_xcord + (Dg / 2),3)
                 str_xcord_straal = str(xcord_straal)
                 str_new_xcord = str(new_xcord)
                 str_new_ycord = str(new_ycord)
@@ -597,7 +630,7 @@ def snijgaten():
                     str_gat_num = str(gat_num)
                     new_ycordO = round(new_ycordO, 3)
                     new_xcordO = round(new_xcordO, 3)
-                    new_xcordO_straal = new_xcordO + (Dg / 2)
+                    new_xcordO_straal = round(new_xcordO + (Dg / 2),3)
                     str_xcordO_straal = str(new_xcordO_straal)
                     str_new_xcordO = str(new_xcordO)
                     str_new_ycordO = str(new_ycordO)
@@ -631,14 +664,14 @@ def snijgaten():
                     str_gat_num = str(gat_num)
                     new_ycordB = round(new_ycordB, 3)
                     new_xcordB = round(new_xcordB, 3)
-                    new_xcordB_straal = new_xcordB + (Dg / 2)
+                    new_xcordB_straal = round(new_xcordB + (Dg / 2),3)
                     str_xcordB_straal = str(new_xcordB_straal)
                     str_new_xcordB = str(new_xcordB)
                     str_new_ycordB = str(new_ycordB)
                     gaatjes_binnen_sx +="(gat"+str_gat_num +")\nG00 X- "+str_new_xcordB +" Y "+str_new_ycordB +"\nM21  (Laser aan)\nG01 X-"+str_xcordB_straal +" Y "+str_new_ycordB +"\nG03 X-"+str_xcordB_straal +" Y "+str_new_ycordB+" I "+str_straal+" J 0.0\nM20  (Laser uit)\nM16\n"
                     new_xcordB = float(str_new_xcordB)
                     new_ycordB = float(str_new_ycordB)
-                    xcordB_straal = float(str_xcordB_straal)
+                    new_xcordB_straal = float(str_xcordB_straal)
                     n_Boven -= 1
                     gat_num = float(str_gat_num)
                     gat_num += 1
@@ -694,7 +727,7 @@ def snijgaten():
                     str_gat_num = str(gat_num)
                     new_ycordO = round(new_ycordO, 3)
                     new_xcordO = round(new_xcordO, 3)
-                    xcordO_straal = new_xcordO + (Dg / 2)
+                    xcordO_straal = round(new_xcordO + (Dg / 2),3)
                     str_xcordO_straal = str(xcordO_straal)
                     str_new_xcordO = str(new_xcordO)
                     str_new_ycordO = str(new_ycordO)
@@ -735,7 +768,7 @@ def snijgaten():
                     gaatjes_binnen_sx +="(gat"+str_gat_num +")\nG00 X- "+str_new_xcordB +" Y "+str_new_ycordB +"\nM21  (Laser aan)\nG01 X-"+str_xcordB_straal +" Y "+str_new_ycordB +"\nG03 X-"+str_xcordB_straal +" Y "+str_new_ycordB+" I "+str_straal+" J 0.0\nM20  (Laser uit)\nM16\n"
                     new_xcordB = float(str_new_xcordB)
                     new_ycordB = float(str_new_ycordB)
-                    xcordB_straal = float(str_xcordB_straal)
+                    new_xcordB_straal = float(str_xcordB_straal)
                     n_Boven -= 1
                     gat_num = float(str_gat_num)
                     gat_num += 1
@@ -818,8 +851,8 @@ def laatstesnijgaten():
     gat_num = 2
     temp_sx = float(str_sx) 
     new_xcord = (Ov2)
-    new_ycord = (RGo + F_Lg)
-    straal = Dg / 2
+    new_ycord = round((RGo + F_Lg),3)
+    straal = round((Dg / 2) ,3)
     str_straal = str(straal)
     first_xcord = (Ov2)
     first_ycord = RGo
@@ -869,8 +902,8 @@ def laatstesnijgaten():
         temp_sx = float(str_sx) 
         new_xcordO = (Ov2)
         new_xcordB = (Ov2)
-        new_ycordO = (RGo + Lg_O)
-        new_ycordB = (RGo + Lg_B + E)
+        new_ycordO = round((RGo + Lg_O),3)
+        new_ycordB = round((RGo + Lg_B + E),3)
         first_xcordO = (Ov2)
         first_ycordO = RGo
         first_xcordO_straal = first_xcordO + (Dg / 2)
@@ -936,7 +969,7 @@ def laatstesnijgaten():
             laatstegaatjes +="(gat"+str_gat_num +")\nG00 X- "+str_new_xcordB +" Y "+str_new_ycordB +"\nM21  (Laser aan)\nG01 X-"+str_xcordB_straal +" Y "+str_new_ycordB +"\nG03 X-"+str_xcordB_straal +" Y "+str_new_ycordB+" I "+str_straal+" J 0.0\nM20  (Laser uit)\nM16\n"
             new_xcordB = float(str_new_xcordB)
             new_ycordB = float(str_new_ycordB)
-            xcordB_straal = float(str_xcordB_straal)
+            new_xcordB_straal = float(str_xcordB_straal)
             n_Boven -= 1
             gat_num = float(str_gat_num)
             gat_num += 1
@@ -1154,7 +1187,9 @@ def SaveHuidigeWaardes():
 
 
         config['Instellingen'] = { 'afwijking': afwijking,
-                                'max_lengte': max_D}
+                                'max_lengte': max_D,
+                                'foto_zichtbaarheid': foto_zichtbaarheid,
+                                'boolCNC_zichtbaarheid': boolCNC_zichtbaarheid}
 
         config['Opslaan'] = {'Locatie': path}
 
@@ -1167,9 +1202,7 @@ def Alleen_Nummers(char):
     return char.isdigit()
 
 
-define_grid(grid_breedte,grid_hoogte)
-config = configparser.ConfigParser()
-config.read('Instellingen.ini')                      #lees Instellingen.ino
+define_grid(grid_breedte,grid_hoogte)                      #lees Instellingen.ino
 
 photo = PhotoImage(file="icon.png")                  #root window instellingen zoals iconfoto grootte van het programma  wanneer opgestart en de achtergronfd kleur   
 root.iconphoto(False, photo)
@@ -1226,15 +1259,15 @@ txt_Dg.grid(column=10, row=13)
 txt_E = ttk.Entry(tab1,width=10)
 txt_E.insert(END, config['Entry']['E'])
 txt_E.grid(column=10, row=14)
-#--------entry box root-----------------------------------------------------------------------------------------------------------------
-txt_bestandsnaam = ttk.Entry(root,width=30)
-txt_bestandsnaam.insert(END, '')
-txt_bestandsnaam.grid(column=16, row=3, sticky='w')
 
-txt_locatie = ttk.Entry(root,width=30)
+txt_bestandsnaam = ttk.Entry(tab1,width=30)
+txt_bestandsnaam.insert(END, '')
+txt_bestandsnaam.grid(column=5, row=15, sticky='w')
+
+txt_locatie = ttk.Entry(tab1,width=30)
 txt_locatie.insert(END, config['Opslaan']['locatie'])
 
-txt_locatie.grid(column=16, row=4, sticky='w')
+txt_locatie.grid(column=5, row=16, sticky='w')
 txt_locatie.bind("<1>", OpenFile)
 #--------entry box tab2-------------------------------------------------------------------------------------------------------------------------
 txt_G = ttk.Entry(tab2,width=10, validate="key", validatecommand=(IntValidation, '%S'))    
@@ -1274,103 +1307,107 @@ btn_Bereken.grid(column=0, row=2)
 btn_GenereerCode = ttk.Button(tab1, text="genereer code",command=btn_GenereerCodeclicked, cursor = "hand2", style ="TButton")
 btn_GenereerCode.grid(column=0, row=4)
 
-btn_BestandOpslaan = ttk.Button(tab1, text="bestand opslaan",command=btn_BestandOpslaanclicked, cursor = "hand2", style ="TButton")
-btn_BestandOpslaan.grid(column=0, row=6)
-
 btn_switch = ttk.Button(tab1, text="switch van eenheid",command=btn_switchclicked, cursor = "hand2", style ="TButton")
-btn_switch.grid(column=0, row=8)
+btn_switch.grid(column=0, row=6)
 
+btn_BestandOpslaan = ttk.Button(tab1, text="bestand opslaan",command=btn_BestandOpslaanclicked, cursor = "hand2", style ="TButton")
+btn_BestandOpslaan.grid(column=0, row=15)
 #-----------labels tab1----------------------------------------------------------------------------------------------------
 lbl_in = ttk.Label(tab1, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
 lbl_in.grid(column=4, row=2, sticky = "w")
 
 lbl_nk = ttk.Label(tab1, text="nk       Aantal platen", anchor='w')
-lbl_nk.grid(column=4, row=3, sticky = W)
+lbl_nk.grid(column=4, row=3, sticky = 'w')
 
 lbl_B = ttk.Label(tab1, text="B         Breedte plaat", anchor='w')
-lbl_B.grid(column=4, row=4, sticky = W)
+lbl_B.grid(column=4, row=4, sticky = 'w')
 
 lbl_D = ttk.Label(tab1, text="D         Lengte plaat", anchor='w')
-lbl_D.grid(column=4, row=5, sticky = W)
+lbl_D.grid(column=4, row=5, sticky = 'w')
 
 lbl_SX = ttk.Label(tab1, text="SX       Slag van de X-as", anchor='w')
-lbl_SX.grid(column=4, row=6, sticky = W)
+lbl_SX.grid(column=4, row=6, sticky = 'w')
 
 lbl_C = ttk.Label(tab1, text="C        Conisch", anchor='w')
-lbl_C.grid(column=4, row=7, sticky = W)
+lbl_C.grid(column=4, row=7, sticky = 'w')
 
 lbl_Ov1 = ttk.Label(tab1, text="Ov1    Overslag 1", anchor='w')
-lbl_Ov1.grid(column=4, row=8, sticky = W)
+lbl_Ov1.grid(column=4, row=8, sticky = 'w')
 
 lbl_Ov2 = ttk.Label(tab1, text="Ov2    Overslag 2", anchor='w')
-lbl_Ov2.grid(column=4, row=9, sticky = W)
+lbl_Ov2.grid(column=4, row=9, sticky = 'w')
 
 lbl_RGb = ttk.Label(tab1, text="RGb    Afstand rand - 1e gat boven", anchor='w')
-lbl_RGb.grid(column=4, row=10, sticky = W)
+lbl_RGb.grid(column=4, row=10, sticky = 'w')
 
 lbl_RGo = ttk.Label(tab1, text="RGo    Afstand rand - 1e gat onder", anchor='w')
-lbl_RGo.grid(column=4, row=11, sticky = W)
+lbl_RGo.grid(column=4, row=11, sticky = 'w')
 
 lbl_n = ttk.Label(tab1, text="n         Aantal gaten", anchor='w')
-lbl_n.grid(column=4, row=12, sticky = W)
+lbl_n.grid(column=4, row=12, sticky = 'w')
 
 lbl_Dg = ttk.Label(tab1, text="Dg      Diameter gat", anchor='w')
-lbl_Dg.grid(column=4, row=13, sticky = W)
+lbl_Dg.grid(column=4, row=13, sticky = 'w')
 
 lbl_E = ttk.Label(tab1, text="E       Grootte koker", anchor='w')
-lbl_E.grid(column=4, row=14, sticky = W)
+lbl_E.grid(column=4, row=14, sticky = 'w')
 
-lbl_uit = ttk.Label(tab1, text="Berekende waarden", anchor='w', font=("Arial Bold", 18))
-lbl_uit.grid(column=4, row=15, sticky = "w")
+lbl_naam = tk.Label(tab1, text="Naam:", anchor='w')
+lbl_naam.grid(column=4, row=15, sticky = 'w',)
 
-lbl_Lu = ttk.Label(tab1, text="Lu      Uitslag tussen de gaten ", anchor='w')
-lbl_Lu.grid(column=4, row=16, sticky = W)
-
-lbl_Lut = ttk.Label(tab1, text="Lut     Totale uitslag", anchor='w')
-lbl_Lut.grid(column=4, row=17, sticky = W)
-
-lbl_Nx = ttk.Label(tab1, text="Nx      Aantal tang overnames", anchor='w')
-lbl_Nx.grid(column=4, row=18, sticky = W)
-
-lbl_Dx = ttk.Label(tab1, text="Dx      X maat overnames", anchor='w')
-lbl_Dx.grid(column=4, row=19, sticky = W)
-
-lbl_Lg = ttk.Label(tab1, text="Lg      Afstand tussen de gaten", anchor='w')
-lbl_Lg.grid(column=4, row=20, sticky = W, columnspan = 4)
-
-lbl_Vg = ttk.Label(tab1, text="Vg      Verloop per gat", anchor='w')
-lbl_Vg.grid(column=4, row=21, sticky = W, columnspan = 4)
-
-lbl_nB = ttk.Label(tab1, text="nB      Aantal gaten bover", anchor='w')
-lbl_nB.grid(column=4, row=22, sticky = W)
-
-lbl_nO = ttk.Label(tab1, text="nO      Aantal gaten onder", anchor='w')
-lbl_nO.grid(column=4, row=23, sticky = W)
-#-----------labels root-------------------------------------------------------------------------------------
-lbl_naam = tk.Label(root, text="Naam:", anchor='w', bg = '#cccccc')
-lbl_naam.grid(column=15, row=3, sticky = W,)
-
-lbl_locatie = tk.Label(root, text="Locatie:", anchor='w', bg = '#cccccc')
-lbl_locatie.grid(column=15, row=4, sticky = W,)
-
-lbl_CNC = tk.Label(root, text="Gegenereerde code", anchor='w', font=("Arial Bold", 18), bg = '#cccccc')
-lbl_CNC.grid(column=15, row=5, columnspan= 2, sticky = "w")
+lbl_locatie = tk.Label(tab1, text="Locatie:", anchor='w')
+lbl_locatie.grid(column=4, row=16, sticky = 'w',)
+#---------labels root---------------------------------------------------------------------------------------
+lbl_CNC = tk.Label(root, text="Gegenereerde code", anchor='w', font=("Arial Bold", 18), bg='#cccccc')
+if boolCNC_zichtbaarheid != 0:
+    lbl_CNC.grid(column=15, row=5, columnspan= 2, sticky = "w")
+else:
+    pass
 #---------labels tab2---------------------------------------------------------------------------------------
 lbl_in2 = ttk.Label(tab2, text="Invoer waarden", anchor='w', font=("Arial Bold", 18))
 lbl_in2.grid(column=4, row=1, sticky = "w")
 
 lbl_G = ttk.Label(tab2, text="G       Positie drain hole in Graden ∠", anchor='w')
-lbl_G.grid(column=4, row=2, sticky = W)
+lbl_G.grid(column=4, row=2, sticky = 'w')
 
 lbl_DDH = ttk.Label(tab2, text="DDH       Diameter drain hole ", anchor='w')
-lbl_DDH.grid(column=4, row=3, sticky = W)
+lbl_DDH.grid(column=4, row=3, sticky = 'w')
+
+lbl_uit = ttk.Label(tab2, text="Berekende waarden", anchor='w', font=("Arial Bold", 18))
+lbl_uit.grid(column=4, row=15, sticky = "w")
+
+lbl_Lu = ttk.Label(tab2, text="Lu      Uitslag tussen de gaten ", anchor='w')
+lbl_Lu.grid(column=4, row=16, sticky = 'w')
+
+lbl_Lut = ttk.Label(tab2, text="Lut     Totale uitslag", anchor='w')
+lbl_Lut.grid(column=4, row=17, sticky = 'w')
+
+lbl_Nx = ttk.Label(tab2, text="Nx      Aantal tang overnames", anchor='w')
+lbl_Nx.grid(column=4, row=18, sticky = 'w')
+
+lbl_Dx = ttk.Label(tab2, text="Dx      X maat overnames", anchor='w')
+lbl_Dx.grid(column=4, row=19, sticky = 'w')
+
+lbl_Lg = ttk.Label(tab2, text="Lg      Afstand tussen de gaten", anchor='w')
+lbl_Lg.grid(column=4, row=20, sticky = 'w', columnspan = 4)
+
+lbl_Vg = ttk.Label(tab2, text="Vg      Verloop per gat", anchor='w')
+lbl_Vg.grid(column=4, row=21, sticky = 'w', columnspan = 4)
+
+lbl_nB = ttk.Label(tab2, text="nB      Aantal gaten bover", anchor='w')
+lbl_nB.grid(column=4, row=22, sticky = 'w')
+
+lbl_nO = ttk.Label(tab2, text="nO      Aantal gaten onder", anchor='w')
+lbl_nO.grid(column=4, row=23, sticky = 'w')
 #-----------------foto-----------------------------------------------------------------------------------------------------------------------------------
 image = Image.open("foto.png")          #foto
 photo = ImageTk.PhotoImage(image)
 label = Label(root,image=photo,bg='#cccccc')
 label.image = photo # this line need to prevent gc
-label.grid(column=12, row=3, rowspan=21, sticky=W+E+N+S)
-
+if foto_zichtbaarheid != 0:
+    label.grid(column=12, row=3, rowspan=21, sticky=W+E+N+S)
+else:
+    pass
 #----------------canvas----------------------------------------------------------------------------------------------------------------------------------------
 frame1=Frame(tab1,height=20)
 frame1.grid(row=0, column=0, columnspan=20, rowspan = 2, sticky = "nesw")
@@ -1387,7 +1424,10 @@ canvas1.itemconfig(canvas_text, text="Nino André Leo Poppe, Altrad services Ben
 canvas1.pack(side=LEFT,expand=True,fill=BOTH)
 
 frame=Frame(root,width=400, height=600)
-frame.grid(row=6, column=15, rowspan=20, columnspan=5, sticky = "w")
+if boolCNC_zichtbaarheid != 0:
+    frame.grid(row=6, column=15, rowspan=20, columnspan=5, sticky = "w")
+else:
+    pass
 canvas=Canvas(frame,bg='#f2f2f2',width=400,height=600,scrollregion=(0,0,600,canvas_lengte))
 hbar=Scrollbar(frame,orient=HORIZONTAL)
 hbar.pack(side=BOTTOM,fill=X)
